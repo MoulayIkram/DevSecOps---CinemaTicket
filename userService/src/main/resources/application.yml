@@ -10,7 +10,7 @@ spring:
       username: rootuser
       password: rootpass
       database: user
-      port: 27017
+      port: 27018
       host: localhost
       auto-index-creation: true
   ## Zipkin and Sleuth Properties
