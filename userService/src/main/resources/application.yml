@@ -1,6 +1,8 @@
 server:
   port: 0
 spring:
+  config:
+    import: optional:file:../.env[.properties],optional:file:./.env[.properties]
   application:
     name: userService
   ## MongoDB Properties
@@ -24,11 +26,11 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://eureka:password@localhost:8761/eureka
+      defaultZone: http://${EUREKA_USER}:${EUREKA_PASSWORD}@localhost:8761/eureka
     fetch-registry: true
     register-with-eureka: true
 
 # JWT properties
 jwt:
   secret:
-    key: secret_secret_secret_secret_secret_secret_secret_secret_secret_secret
+    key: ${JWT_SECRET}
