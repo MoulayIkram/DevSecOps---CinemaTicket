@@ -83,18 +83,15 @@ export default function AddActorsAndCityToMovie() {
                     }
                     let actorDto = {
                         movieId: movieId,
-                        actorNameList: actorNameList,
-                        token: userFromRedux.token
+                        actorNameList: actorNameList
                     }
                     let cityDto = {
                         movieId: movieId,
-                        cityNameList: values.cities,
-                        token: userFromRedux.token
+                        cityNameList: values.cities
                     }
                     let movieImageDto = {
                         movieId: movieId,
-                        imageUrl: values.imageUrl,
-                        token: userFromRedux.token
+                        imageUrl: values.imageUrl
                     }
                     
                     actorService.addActor(actorDto);

@@ -50,10 +50,8 @@ public class SecurityConfig {
                         // Toute autre écriture sur le catalogue : ADMIN
                         .pathMatchers("/api/movie/**").hasRole("ADMIN")
 
-                        // Transitoire : login et inscription de l'ancien userService
-                        // (à retirer quand Keycloak les remplace, étape de migration de userService)
-                        .pathMatchers(HttpMethod.POST, "/api/user/auth/**").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/api/user/users/add").permitAll()
+                        // Endpoints internes (service à service) : jamais exposés par le Gateway
+                        .pathMatchers("/api/user/internal/**").denyAll()
 
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2

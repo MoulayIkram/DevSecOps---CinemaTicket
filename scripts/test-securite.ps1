@@ -97,6 +97,7 @@ Check "Profil utilisateur (creation depuis les claims)" 200 (Get-Status GET "$GW
 Check "Endpoint interne sans jeton" 401 (Get-Status GET "$userUrl/api/user/internal/users/$customerSub")
 Check "Endpoint interne avec un jeton ADMIN (pas un service)" 403 (Get-Status GET "$userUrl/api/user/internal/users/$customerSub" $admin)
 Check "Endpoint interne avec le jeton de service" 200 (Get-Status GET "$userUrl/api/user/internal/users/$customerSub" $service)
+Check "Endpoint interne via le Gateway (bloque)" 403 (Get-Status GET "$GW/api/user/internal/users/$customerSub" $admin)
 
 Write-Host "`n== 4. ABAC : suppression d'un commentaire ==" -ForegroundColor Cyan
 $c = Invoke-RestMethod -Method Post -Uri "$GW/api/movie/comments/add" -Headers @{ Authorization = "Bearer $admin" } -ContentType "application/json" -Body '{"movieId":1,"commentText":"Commentaire de test"}'

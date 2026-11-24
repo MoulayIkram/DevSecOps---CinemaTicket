@@ -107,7 +107,6 @@ export default function DetailPage() {
                     commentByUserId: userFromRedux.userId,
                     commentText: commentText,
                     commentBy: userFromRedux.fullName,
-                    token: userFromRedux.token,
                     movieId: movieId
                 }
                 
@@ -138,8 +137,7 @@ export default function DetailPage() {
 
     function deleteComment(commentId) {
         let deleteCommentDto = {
-            commentId: commentId,
-            token: userFromRedux.token
+            commentId: commentId
         }
         commentService.deleteComment(deleteCommentDto).then(result => {
             if(result.status == 200){

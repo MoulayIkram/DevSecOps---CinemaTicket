@@ -62,12 +62,10 @@ export default function AddMoviePage() {
                 initialValues={initValues}
                 validationSchema={validationSchema}
                 onSubmit={(values) => {
-                    values.userAccessToken = userFromRedux.token; // Change here
 
                     if(values.directorId === undefined){
                         let director={
-                            directorName: values.directorName,
-                            token: userFromRedux.token
+                            directorName: values.directorName
                         }
                         directorService.add(director).then(result => {
                             values.directorId = result.data.directorId

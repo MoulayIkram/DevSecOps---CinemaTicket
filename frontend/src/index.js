@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import axios from 'axios';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
@@ -39,8 +40,14 @@ keycloak.init({
   checkLoginIframe: false,
   silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
 })
-  .then((authenticated) => { if (authenticated) store.dispatch(addUserToState(buildUser(keycloak))); })
-  .catch((e) => console.error('Keycloak init failed', e))
+    .then((authenticated) => {
+    if (authenticated) {
+      store.dispatch(addUserToState(buildUser(keycloak)));
+      // Crée (ou récupère) le profil dans userService à la première connexion
+      axios.get('http://localhost:8080/api/user/users/me').catch(() => {});
+    }
+  })
+    .catch((e) => console.error('Keycloak init failed', e))
   .finally(renderApp);
 
 // If you want to start measuring performance in your app, pass a function
