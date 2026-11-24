@@ -44,12 +44,12 @@ export default function MainPage() {
                     <div class="container px-5">
                         <h1 class="masthead-heading mb-0">CineVision</h1>
                         <h2 class="masthead-subheading mb-0">
-                            CineVision ile Film Keyfini Kaçırma
+                            Don't miss the magic of movies with CineVision
                         </h2>
                         <h2 class="mt-3">
-                            Vizyondaki en yeni filmler CineVision Sinema Salonlarında
+                            The newest releases, now showing in CineVision cinemas
                         </h2>
-                        <a class="btn btn-primary btn-xl rounded-pill mt-5" href="#scroll">Filmler</a>
+                        <a class="btn btn-primary btn-xl rounded-pill mt-5" href="#scroll">Movies</a>
                     </div>
                 </div>
                 <div class="bg-circle-1 bg-circle"></div>
@@ -93,7 +93,7 @@ export default function MainPage() {
                         role="tab" aria-controls="pills-home" aria-selected="true"
                         onClick={() => {
                             getMovies(false)
-                        }}>Vizyonda</button>
+                        }}>Now Showing</button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="pills-profile-tab" data-bs-toggle="pill"
@@ -101,7 +101,7 @@ export default function MainPage() {
                     type="button" role="tab" aria-controls="pills-profile" aria-selected="false"
                     onClick={() => {
                         getMovies(true)
-                    }}>Yakında</button>
+                    }}>Coming Soon</button>
                 </li>
             </ul>
         </div>
@@ -111,7 +111,8 @@ export default function MainPage() {
 
     <section className='mb-5'>
         <Swiper
-            slidesPerView={5}
+            slidesPerView={1.3}
+            breakpoints={{576: {slidesPerView: 2}, 768: {slidesPerView: 3}, 992: {slidesPerView: 4}, 1200: {slidesPerView: 5}}}
             spaceBetween={0}
             pagination={{
                 clickable: true,
@@ -128,11 +129,11 @@ export default function MainPage() {
                                 <div class="p-2 d-grid gap-2">
                                     <a class="slider-button btn btn-light btn-md rounded d-none d-sm-block"
                                         onClick={()=> navigate("/movie/" + movie.movieId)}>
-                                        <strong>Yorum Yap </strong>
+                                        <strong>Comment </strong>
                                     </a>
                                     <a class="slider-button btn btn-light btn-md rounded d-none d-sm-block"
                                         onClick={()=> navigate("/movie/" + movie.movieId)}>
-                                        <strong> Bilet Al </strong>
+                                        <strong> Buy Ticket </strong>
                                     </a>
                                 </div>
                             
@@ -146,6 +147,7 @@ export default function MainPage() {
             
 
         </Swiper>
+        {movies.length === 0 ? <p className='lead text-center mt-4'>No movies to show yet.</p> : null}
 
    
     </section>
