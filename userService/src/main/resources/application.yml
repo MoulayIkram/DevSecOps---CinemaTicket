@@ -5,6 +5,12 @@ spring:
     import: optional:file:../.env[.properties],optional:file:./.env[.properties]
   application:
     name: userService
+  # Resource server OAuth2 : validation des JWT emis par Keycloak (JWKS)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8181/realms/cinevision
   ## MongoDB Properties
   data:
     mongodb:
@@ -29,8 +35,3 @@ eureka:
       defaultZone: http://${EUREKA_USER}:${EUREKA_PASSWORD}@localhost:8761/eureka
     fetch-registry: true
     register-with-eureka: true
-
-# JWT properties
-jwt:
-  secret:
-    key: ${JWT_SECRET}
