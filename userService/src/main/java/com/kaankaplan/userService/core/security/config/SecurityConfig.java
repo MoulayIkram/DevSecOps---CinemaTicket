@@ -2,6 +2,7 @@ package com.kaankaplan.userService.core.security.config;
 
 import com.kaankaplan.userService.core.security.TokenVerifierFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,6 +29,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${jwt.secret.key}")
+    private String jwtSecret;
+
 
     @Bean(BeanIds.AUTHENTICATION_MANAGER)
     @Override
@@ -45,7 +49,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.cors().and().csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilterAfter(new TokenVerifierFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new TokenVerifierFilter(jwtSecret), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
                         .antMatchers(HttpMethod.POST, "/api/user/auth/**").permitAll()
                         .antMatchers("/api/user/users/**").permitAll()

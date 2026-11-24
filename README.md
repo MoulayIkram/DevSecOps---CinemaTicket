@@ -30,8 +30,8 @@ Notre travail porte sur sa sécurisation (Keycloak, OAuth 2.0 / OIDC, JWT, RBAC 
 | movieService | films, paiements, commentaires (PostgreSQL) | aléatoire |
 | emailService | envoi de l'email du ticket (consomme Kafka) | aléatoire |
 | frontend React | interface | 3000 |
-| PostgreSQL | base de movieService | 5432 |
-| MongoDB | base de userService | 27017 |
+| PostgreSQL | base de movieService | 5433 |
+| MongoDB | base de userService | 27018 |
 | Kafka | messages movieService vers emailService | 9092 |
 | Zipkin | traçage des requêtes | 9411 |
 | Redis | cache | 6379 |
@@ -146,3 +146,11 @@ Vérifiés avec les commandes de la section 4 :
 
 Keycloak, validation des JWT au Gateway, `@PreAuthorize` sur les écritures, jeton de service (Client Credentials) entre `movieService` et `userService`, tests.
 Section à compléter au fil des phases.
+
+## 9. Configuration des secrets (obligatoire)
+
+1. `Copy-Item .env.example .env` (à la racine du projet)
+2. Remplir `.env` avec ses propres valeurs (commandes de génération dans `.env.example`).
+   Ce fichier n'est jamais commité.
+3. `SMTP_USERNAME` / `SMTP_PASSWORD` : compte Gmail et mot de passe d'application.
+   Sans eux, tout fonctionne sauf l'envoi réel de l'email.
