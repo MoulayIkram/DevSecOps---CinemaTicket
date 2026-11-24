@@ -57,11 +57,11 @@ export default function AddActorsAndCityToMovie() {
   return (
     <div>
         <div className='mt-5 p-5 container' style={{height: "100vh"}}>
-            <h2 className='mt-4'>Film Ekle</h2>
+            <h2 className='mt-4'>Add Movie</h2>
             <hr />
 
             <h5 className='my-4'>
-                Eklemiş olduğunuz filmin oyuncu ve şehir bilgilerini ekleyin.
+                Add the cast and the cities for the movie you just created.
             </h5>
 
             <Formik 
@@ -114,15 +114,15 @@ export default function AddActorsAndCityToMovie() {
                             ))}
                         />
                     </div>
-                    <p>Listede yoksa lütfen virgül ile ayırarak yazınız.</p>
+                    <p>If they are not in the list, please type them separated by commas.</p>
                     <div class="form-floating mb-3">
-                        <KaanKaplanTextInput  type="text" name='actorName' class="form-control" id="floatingInput" placeholder="Aktörün İsmi" />
-                        <label for="floatingInput">Aktörün İsmi</label>
+                        <KaanKaplanTextInput  type="text" name='actorName' class="form-control" id="floatingInput" placeholder="Actor name" />
+                        <label for="floatingInput">Actor name</label>
                     </div>
 
                     <div class="form-floating mb-3">
-                        <KaanKaplanTextInput name='imageUrl' type="text" class="form-control" id="imageUrl" placeholder="Afiş Resmi Url" />
-                        <label for="imageUrl">Afiş Resmi Url</label>
+                        <KaanKaplanTextInput name='imageUrl' type="text" class="form-control" id="imageUrl" placeholder="Poster image URL" />
+                        <label for="imageUrl">Poster image URL</label>
                     </div>
 
                      <div class="mb-3">
@@ -134,14 +134,14 @@ export default function AddActorsAndCityToMovie() {
                             options= {cities.map(city => (
                                 {key: city, text:city, value: city}
                             ))}
-                            placeholder="Şehir"
+                            placeholder="City"
                         />
                     </div>
 
                     <div className="d-grid gap-2 my-4 col-6 mx-auto">
                       <input
                         type="submit"
-                        value="Ekle"
+                        value="Add"
                         className="btn btn-block btn-primary"
                       />
                     </div>

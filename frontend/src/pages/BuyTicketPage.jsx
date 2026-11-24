@@ -1,6 +1,6 @@
 import Cleave from 'cleave.js/react'
 import { Field, Form, Formik } from 'formik'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast, ToastContainer } from 'react-toastify'
@@ -20,6 +20,16 @@ export default function BuyTicketPage() {
     const [chairNumberList, setChairNumberList] = useState([])
 
     const movieState = useSelector(state => state.movie.payload)
+    const userFromRedux = useSelector(state => state.user.payload)
+    const [submitting, setSubmitting] = useState(false)
+
+    // Opening this page directly (or after a refresh) loses the selected showtime
+    useEffect(() => {
+        if (!movieState) {
+            toast.info("Please choose a movie and a showtime first.", { theme: "colored", position: "top-center" });
+            navigate("/");
+        }
+    }, [])
 
     function checkChairIsEmpty(elementId) {
         let classname = document.getElementById(elementId).className;
@@ -98,7 +108,7 @@ export default function BuyTicketPage() {
                             <h2 class="accordion-header" id="panelsStayOpen-headingTwo">
                                 <div className='row pt-3 pb-1 px-4 align-items-center'>
                                         <div className='col-sm-6 text-start'>
-                                            <h3>Biletini Seç</h3>
+                                            <h3>Choose Your Tickets</h3>
                                         </div>
                                             {/* Ticket Type Section */}
                                          
@@ -109,7 +119,7 @@ export default function BuyTicketPage() {
                                                         data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="true" aria-controls="panelsStayOpen-collapseTwo"
                                                         onClick={() => {
                                                             if(studentTicketNumber === 0 && adultTicketNumber === 0) {
-                                                                toast.warning("Devam etmek için lütfen bilet seçiniz", {
+                                                                toast.warning("Please select at least one ticket to continue", {
                                                                     theme: "dark",
                                                                     position: "top-center"
                                                                 })
@@ -117,12 +127,12 @@ export default function BuyTicketPage() {
                                                                 setTicketItem("placeSection")
                                                                 setChairNumber(studentTicketNumber + adultTicketNumber)
                                                             }
-                                                        }}>Devam Et</button>
+                                                        }}>Continue</button>
                                                 :  
                                                     <button className='btn btn-outline-dark'
                                                         data-bs-toggle="collapse" 
                                                         data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne"
-                                                        onClick={() => setTicketItem("ticketSection")}>Değiştir</button>}
+                                                        onClick={() => setTicketItem("ticketSection")}>Change</button>}
                                             </div>
                                         
                                 </div>
@@ -134,17 +144,17 @@ export default function BuyTicketPage() {
                                         <section>
                                                 <div className='row '>
                                                     <div className='col-sm-6 text-start'>
-                                                        <p>Film ve Seans seçiminden sonra bilet tipini seçmelisin.
-                                                            Eğer öğrenciysen kimlik kartını yanında getirmeyi unutma.</p>                        
+                                                        <p>Choose your ticket type after selecting the movie and showtime.
+                                                            If you are a student, remember to bring your student ID.</p>                        
                                                     </div>
                                                 </div>
 
                                             <div className='row mt-3 px-2 border border-2 align-items-center'>
                                                 <div className='col-sm-6 text-uppercase border-end'>
-                                                    Tam
+                                                    Adult
                                                 </div>
                                                 <div className='col-sm-3 border-end'>
-                                                    Fiyat 25₺
+                                                    Price 25 MAD
                                                 </div>
                                                 <div className='col-sm-3'>
                                                     <div className='row justify-content-center align-items-center'>
@@ -169,10 +179,10 @@ export default function BuyTicketPage() {
                                             </div>
                                             <div className='row mt-1 px-2 border border-2 align-items-center'>
                                                 <div className='col-sm-6 text-uppercase border-end'>
-                                                    Öğrenci
+                                                    Student
                                                 </div>
                                                 <div className='col-sm-3 border-end'>
-                                                    Fiyat 15₺
+                                                    Price 15 MAD
                                                 </div>
                                                 <div className='col-sm-3'>
                                                     <div className='row justify-content-center align-items-center'>
@@ -197,7 +207,7 @@ export default function BuyTicketPage() {
                                                 </div>
                                             </div>
 
-                                            <p className='lead text-end mt-3 me-5'>Toplam Tutar: <strong>{(studentTicketNumber * 15.00 + adultTicketNumber * 25.00).toFixed(2)} ₺ </strong></p>
+                                            <p className='lead text-end mt-3 me-5'>Total: <strong>{(studentTicketNumber * 15.00 + adultTicketNumber * 25.00).toFixed(2)} MAD </strong></p>
                                         </section>
 
                                     </div>
@@ -210,7 +220,7 @@ export default function BuyTicketPage() {
                             <h2 class="accordion-header" id="panelsStayOpen-headingTwo">
                                 <div className='row pt-3 pb-1 px-4 align-items-center'>
                                         <div className='col-sm-6 text-start'>
-                                            <h3>Koltuk Seç </h3>
+                                            <h3>Choose Seats </h3>
                                         </div>
                                         <div className='col-sm-6 mb-2 text-end'>
                                             {ticketItem === "placeSection" ?
@@ -219,14 +229,14 @@ export default function BuyTicketPage() {
                                                     aria-expanded="false" aria-controls="panelsStayOpen-collapseThree"
                                                     onClick={() => {
                                                         if (chairNumber !== 0) {
-                                                            toast.warning("Lütfen bilet sayınız kadar koltuk seçiniz!", {
+                                                            toast.warning("Please select as many seats as tickets!", {
                                                                 theme: "dark",
                                                                 position: "top-center"
                                                             })
                                                         } else {
                                                             setTicketItem("paySection")
                                                         }
-                                                    }}>Devam Et</button>
+                                                    }}>Continue</button>
                                             :
                                                 <button className='btn btn-outline-dark' data-bs-toggle="collapse" 
                                                     data-bs-target="#panelsStayOpen-collapseTwo"
@@ -235,7 +245,7 @@ export default function BuyTicketPage() {
                                                         setTicketItem("placeSection")
                                                         // markChairsWithChairId(chairNumberList)
                                                     }}>
-                                                        Değiştir
+                                                        Change
                                                 </button>
                                             }
                                         </div>
@@ -323,7 +333,7 @@ export default function BuyTicketPage() {
                                             : null}
                                             {ticketItem === "placeSection" ? (
                                                 <div>
-                                                    <p className='pt-2'>Perde</p>
+                                                    <p className='pt-2'>Screen</p>
                                                     <hr style={{height:"4px", color:"black"}}/>
                                                 </div>
                                             )
@@ -338,11 +348,11 @@ export default function BuyTicketPage() {
                             <h2 class="accordion-header" id="panelsStayOpen-headingThree">
                                 <div className='row pt-3 pb-1 px-4 align-items-center'>
                                         <div className='col-sm-6 text-start'>
-                                            <h3>Ödeme</h3>
+                                            <h3>Payment</h3>
                                         </div>
                                         <div className='col-sm-6 mb-2 text-end'>
                                             {ticketItem === "paySection" ?
-                                                <h3>Toplam : {(studentTicketNumber * 15.00 + adultTicketNumber * 25.00).toFixed(2)} ₺</h3>
+                                                <h3>Total: {(studentTicketNumber * 15.00 + adultTicketNumber * 25.00).toFixed(2)} MAD</h3>
                                             : null}
                                         </div>
                                       
@@ -352,8 +362,9 @@ export default function BuyTicketPage() {
                             <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingThree">
                             {ticketItem == "paySection" ? 
                             <div class="accordion-body">
+                                <p className='small text-muted text-start'>Demo payment: no card is actually charged.</p>
                                 <Formik
-                                    initialValues={{}}
+                                    initialValues={{ fullName: userFromRedux?.fullName || "", email: userFromRedux?.email || "" }}
                                     onSubmit={(values) => {
                                         let  result = ""
                                         chairNumberList.map(item => result = result + " " + item);
@@ -364,23 +375,27 @@ export default function BuyTicketPage() {
                                         values.movieDay= movieState?.movieDay;
                                         values.movieStartTime= movieState?.movieTime;
 
+                                        setSubmitting(true);
                                         paymentService.sendTicketDetail(values).then(result => {
                                             navigate("/paymentSuccess")
+                                        }).catch(() => {
+                                            setSubmitting(false);
+                                            toast.error("The payment could not be completed. Please try again.", { theme: "colored", position: "top-center" });
                                         })
                                     }}>
                                     <Form className='row justify-content-center align-items-start'>
                                         <div className='col-sm-12 col-md-6'>
                                             <div class="imput-group form-floating has-validation mb-3">
-                                                <KaanKaplanTextInput name="fullName" type="text" class="form-control" id="fullName" placeholder="İsim - Soyisim" required/>
-                                                <label for="fullName">İsim - Soyisim</label>
+                                                <KaanKaplanTextInput name="fullName" type="text" class="form-control" id="fullName" placeholder="Full name" required/>
+                                                <label for="fullName">Full name</label>
                                             </div>
                                             <div class="form-floating mb-3">
                                                 <KaanKaplanTextInput name="email" type="email" class="form-control" id="email" placeholder="Email" required/>
                                                 <label for="email">Email</label>
                                             </div>
                                             <div class="form-floating mb-3">
-                                                <KaanKaplanTextInput name="phone" type="tel" pattern="[0]{1} [0-9]{3} [0-9]{3} [0-9]{2} [0-9]{2}" class="form-control" id="phone" placeholder="0 5** *** ** **" required/>
-                                                <label for="phone">Telefon - 0 5** *** ** **</label>
+                                                <KaanKaplanTextInput name="phone" type="tel" pattern="[0-9+ ]{8,16}" title="Digits, spaces and + only" class="form-control" id="phone" placeholder="Phone number" required/>
+                                                <label for="phone">Phone number</label>
                                             </div>
                                             
                                            
@@ -388,33 +403,32 @@ export default function BuyTicketPage() {
 
                                         <div className='col-sm-12 col-md-6 mb-3'>
                                             <div class="form-floating mb-3">
-                                                <Cleave class="form-control" id="floatingCardNumber" placeholder='Kredi Kartı Numarası' required
+                                                <Cleave class="form-control" id="floatingCardNumber" placeholder='Card number' required
                                                 options={{creditCard:true}} />
-                                                <label for="floatingCardNumber">Kredi Kartı Numarası</label>
+                                                <label for="floatingCardNumber">Card number</label>
                                             </div>
                                             <div className='row'>
                                                 <div className='col-sm-6'>
                                                     <div class="form-floating mb-3">
-                                                        <Cleave type="text" class="form-control" id="floatingCardLastDate" placeholder='Son Tarih' required
+                                                        <Cleave type="text" class="form-control" id="floatingCardLastDate" placeholder='Expiry date (MM/YY)' required
                                                         options={{date:true, datePattern: ['m','y']}} />
-                                                        <label for="floatingCardLastDate">Son Tarih</label>
+                                                        <label for="floatingCardLastDate">Expiry date (MM/YY)</label>
                                                     </div>
                                                 </div>
                                                 <div className='col-sm-6'>
                                                     <div class="form-floating mb-3">
-                                                        <input type="text" class="form-control"  maxlength="3" size="3"  id="floatingSecurityNumber" placeholder="Güvenlik Numarası" required/>
+                                                        <input type="text" class="form-control"  maxlength="3" size="3"  id="floatingSecurityNumber" placeholder="Security code" required/>
                                                         <label for="floatingSecurityNumber">CCV</label>
                                                     </div>
                                                 </div>
-                                                <p className='text-start'> <input class="form-check-input me-3" type="checkbox" value="" aria-label="Checkbox for following text input" required/>Ön Bilgilendirme Koşulları'nı ve
-                                                Mesafeli Satış Sözleşmesi'ni okudum, onaylıyorum.
+                                                <p className='text-start'> <input class="form-check-input me-3" type="checkbox" value="" aria-label="Checkbox for following text input" required/>I have read and accept the terms and conditions of sale.
                                             </p>
                                             </div>
                                         </div>
 
                                         <hr />
                                         <div className='text-end mt-1'>
-                                            <button type='submit' className='btn btn-dark col-3'>Ödeme</button>
+                                            <button type='submit' className='btn btn-dark col-3' disabled={submitting}>{submitting ? "Processing..." : "Pay now"}</button>
                                         </div>
                                     </Form>
                                 </Formik>

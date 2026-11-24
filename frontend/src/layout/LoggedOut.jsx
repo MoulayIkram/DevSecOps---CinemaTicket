@@ -1,4 +1,5 @@
 import React from 'react'
+import keycloak from '../keycloak'
 
 export default function LoggedOut() {
   return (
@@ -6,10 +7,10 @@ export default function LoggedOut() {
         <ul className="navbar-nav ms-auto py-4 py-lg-0">
             <li class="nav-item">
                 <a class="nav-link" href="#!"
-                data-bs-toggle="modal" data-bs-target="#registerModal">Kayıt Ol</a></li>
-            
+                onClick={() => keycloak.register({ redirectUri: window.location.origin })}>Sign Up</a></li>
+
             <li class="nav-item"><a class="nav-link" href="#!"
-                data-bs-toggle="modal" data-bs-target="#loginModal">Giriş</a></li>
+                onClick={() => keycloak.login({ redirectUri: window.location.href })}>Sign In</a></li>
         </ul>
     </div>
   )

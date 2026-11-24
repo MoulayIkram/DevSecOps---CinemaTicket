@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom'
-import LoginModal from '../pages/LoginModal';
-import RegisterModal from '../pages/RegisterModal';
+import { ToastContainer } from 'react-toastify';
 import { MovieService } from '../services/movieService';
 import LoggedOut from './LoggedOut';
 import LoggedIn from './LoggedIn';
@@ -37,12 +36,12 @@ export default function Navbar() {
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ms-auto align-items-center">
                         {userFromRedux?.roles[0] === "ADMIN" ? 
-                            <li class="nav-item"><a class="nav-link" href="#!" onClick={() => navigate("/addMovie")}>Film Ekle</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#!" onClick={() => navigate("/addMovie")}>Add Movie</a></li>
                         : null}
 
                         <li class="nav-item"><a class="nav-link" href="#!"
                         data-bs-toggle="offcanvas" data-bs-target="#offcanvasTop" aria-controls="offcanvasTop">
-                            Filmler</a></li>
+                            Movies</a></li>
                         
                         { userFromRedux ? <LoggedIn /> : <LoggedOut /> }
                     </ul>
@@ -50,9 +49,8 @@ export default function Navbar() {
             </div>
         </nav>
 
-        {/* Login Modal */}
-        <LoginModal />
-        <RegisterModal />
+        {/* Les connexions et inscriptions passent par Keycloak */}
+        <ToastContainer />
 
         {/* Movies OffCanvas */}
         <div class="offcanvas offcanvas offcanvas-top off-canvas-movie" tabindex="-1" id="offcanvasTop" 
@@ -73,7 +71,7 @@ export default function Navbar() {
                                     <p className='last-movie-p'>{moviesInVision[0]?.description}</p>
                                     <a class="slider-button btn btn-light btn-md rounded" data-bs-dismiss="offcanvasTop" aria-label="Close"
                                          onClick={()=> navigate("/movie/" + moviesInVision[0]?.movieId)}>
-                                         <strong>Bilet Al </strong>
+                                         <strong>Buy Ticket </strong>
                                     </a>
                                 </div>
                             </div>
@@ -81,7 +79,7 @@ export default function Navbar() {
                         <div className='col-sm-12 col-md-6'>
                             <div className='row justify-content-center align-items-start'>
                                 <div className='col-sm-7'>
-                                    <h3 className='text-start ms-3'>Vizyondakiler</h3>
+                                    <h3 className='text-start ms-3'>Now Showing</h3>
                                     {/* For loop sadece 5 tanesi*/}
                                     <div className='ms-3 mt-2'>
                                         {moviesInVision.map(movie => (
@@ -94,10 +92,10 @@ export default function Navbar() {
 
                                     </div>
                                     
-                                    <a href='#!' className='text-decoration-none'><strong> Tümü </strong> </a>
+                                    <a href='#!' className='text-decoration-none'><strong> All </strong> </a>
                                 </div>
                                 <div className='col-sm-5'>
-                                    <h3 className='text-start ms-3'>Yakında</h3>
+                                    <h3 className='text-start ms-3'>Coming Soon</h3>
                                     {/* For loop */}
                                     <div className='ms-3 mt-2'>
                                         {comingSoonMovies.map(movie => (
@@ -108,7 +106,7 @@ export default function Navbar() {
                                         ))}
 
                                     </div>
-                                    <a href='#!' className='text-decoration-none'><strong> Tümü </strong> </a>
+                                    <a href='#!' className='text-decoration-none'><strong> All </strong> </a>
                                 </div>
                             </div>
                         </div>
