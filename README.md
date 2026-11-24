@@ -22,6 +22,10 @@ Notre travail porte sur sa sécurisation (Keycloak, OAuth 2.0 / OIDC, JWT, RBAC 
 
 ## 2. Architecture et ports
 
+Le schéma ci-dessous présente l'architecture microservices de l'application, incluant l'authentification via Keycloak, le routage par l'API Gateway et la communication asynchrone avec Kafka.
+
+![Architecture de l'application](Architecture.png)
+
 | Composant | Rôle | Port |
 |---|---|---|
 | eureka-server | annuaire des services | 8761 |
