@@ -54,3 +54,9 @@ spring:
 
   application:
     name: emailService
+
+# Validation du jeton de service joint aux messages Kafka
+cinevision:
+  security:
+    issuer-uri: http://localhost:8181/realms/cinevision
+    required-role: SERVICE_MOVIE
