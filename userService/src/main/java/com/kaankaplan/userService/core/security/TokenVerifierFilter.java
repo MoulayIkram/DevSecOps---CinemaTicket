@@ -24,6 +24,12 @@ import java.util.stream.Collectors;
 
 public class TokenVerifierFilter extends OncePerRequestFilter {
 
+    private final String key;
+
+    public TokenVerifierFilter(String key) {
+        this.key = key;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
@@ -31,7 +37,6 @@ public class TokenVerifierFilter extends OncePerRequestFilter {
 
         if(Strings.hasText(token) && token.startsWith("Bearer ")){
             token = token.replace("Bearer ", "");
-            String key = "secret_secret_secret_secret_secret_secret_secret_secret_secret_secret";
             try {
                 Jws<Claims> jwsClaims = Jwts.parser()
                         .setSigningKey(Keys.hmacShaKeyFor(key.getBytes()))

@@ -1,5 +1,6 @@
 package com.kaankaplan.eurekaserver.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -13,6 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Value("${EUREKA_USER}")
+    private String eurekaUser;
+
+    @Value("${EUREKA_PASSWORD}")
+    private String eurekaPassword;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -22,8 +29,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication()
                 .passwordEncoder(passwordEncoder()) // BcryptPassword
-                .withUser("eureka")
-                .password(passwordEncoder().encode("password"))
+                .withUser(eurekaUser)
+                .password(passwordEncoder().encode(eurekaPassword))
                 .authorities("USER");
     }
 

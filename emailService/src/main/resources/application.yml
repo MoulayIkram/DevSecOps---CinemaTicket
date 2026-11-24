@@ -5,12 +5,14 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://eureka:password@localhost:8761/eureka
+      defaultZone: http://${EUREKA_USER}:${EUREKA_PASSWORD}@localhost:8761/eureka
     fetch-registry: true
     register-with-eureka: true
 
 ## Apache Kafka Consumer Properties
 spring:
+  config:
+    import: optional:file:../.env[.properties],optional:file:./.env[.properties]
   kafka:
     consumer:
       bootstrap-servers: localhost:9092
@@ -39,8 +41,8 @@ spring:
     default-encoding: UTF-8
     host: smtp.gmail.com
     port: 587
-    username: python3.testmail@gmail.com # CHANGE with your email.
-    password: '*******'    # CHANGE with your password.
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
     protocol: smtp
     test-connection: false
     properties:
