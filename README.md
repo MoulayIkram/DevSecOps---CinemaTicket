@@ -111,8 +111,13 @@ $r = Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/user/auth/log
 $r
 ```
 
-L'envoi réel de l'email nécessite un mot de passe d'application Gmail dans `emailService/src/main/resources/application.yml`.
-Sans lui, le paiement fonctionne mais `emailService` affiche `535 Username and Password not accepted` : c'est attendu.
+L'envoi réel de l'email nécessite un mot de passe d'application Gmail, lu dans les variables d'environnement `MAIL_USERNAME` et `MAIL_PASSWORD` (aucun identifiant n'est stocké dans le dépôt).
+
+1. Copier `.env.example` en `.env` (ignoré par Git) et renseigner vos valeurs.
+2. Dans IntelliJ : *Run > Edit Configurations > EmailServiceApplication > Environment variables*, puis saisir :
+   `MAIL_USERNAME=votre.adresse@gmail.com;MAIL_PASSWORD=mot_de_passe_application`
+
+Sans ces variables, le paiement fonctionne mais `emailService` affiche `535 Username and Password not accepted` : c'est attendu.
 
 ## 5. Problèmes fréquents
 
@@ -139,7 +144,7 @@ Vérifiés avec les commandes de la section 4 :
 - `POST /api/movie/payments/sendTicketDetail` est accepté sans jeton et déclenche l'envoi d'un email à l'adresse fournie dans le body.
 - Les services sont joignables directement sur leur port, sans passer par le Gateway.
 - Le consumer Kafka d'`emailService` traite tout message reçu, sans vérifier son origine.
-- Secrets en dur : identifiants Eureka, secret JWT HS256 (dans deux fichiers), mot de passe SMTP, mots de passe des bases.
+- Secrets en dur : identifiants Eureka, secret JWT HS256 (dans deux fichiers), mots de passe des bases. (Le mot de passe SMTP est désormais lu dans l'environnement.)
 - Le jeton JWT est valable 2 semaines et circule dans le body JSON.
 
 ## 8. Travail de sécurisation (en cours)
