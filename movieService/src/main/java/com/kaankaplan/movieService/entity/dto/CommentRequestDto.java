@@ -15,6 +15,5 @@ public class CommentRequestDto {
     private String commentText;
     private String commentBy;
     private String commentByUserId;
-    private String token;
     private int movieId;
 }

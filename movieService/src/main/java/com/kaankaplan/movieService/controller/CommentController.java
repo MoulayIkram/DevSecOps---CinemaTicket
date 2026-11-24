@@ -1,5 +1,6 @@
 package com.kaankaplan.movieService.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.kaankaplan.movieService.business.abstracts.CommentService;
 import com.kaankaplan.movieService.entity.Comment;
 import com.kaankaplan.movieService.entity.dto.CommentRequestDto;
@@ -30,6 +31,7 @@ public class CommentController {
     }
 
     @PostMapping("add")
+    @PreAuthorize("hasAnyRole('CUSTOMER','ADMIN')")
     @CircuitBreaker(name = "comment", fallbackMethod = "fallback")
     @Retry(name="comment")
     public Comment addComment(@RequestBody CommentRequestDto comment) {
@@ -37,6 +39,7 @@ public class CommentController {
     }
 
     @PostMapping("delete")
+    @PreAuthorize("hasAnyRole('CUSTOMER','ADMIN')")
     public void deleteComment(@RequestBody DeleteCommentRequestDto deleteCommentRequestDto) {
         commentService.deleteComment(deleteCommentRequestDto);
     }

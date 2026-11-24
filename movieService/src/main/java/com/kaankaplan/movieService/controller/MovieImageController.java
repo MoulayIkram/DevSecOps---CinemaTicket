@@ -1,5 +1,6 @@
 package com.kaankaplan.movieService.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.kaankaplan.movieService.business.abstracts.MovieImageService;
 import com.kaankaplan.movieService.entity.dto.ImageRequestDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -15,6 +16,7 @@ public class MovieImageController {
     private final MovieImageService movieImageService;
 
     @PostMapping("add")
+    @PreAuthorize("hasRole('ADMIN')")
     @CircuitBreaker(name = "image", fallbackMethod = "fallback")
     @Retry(name = "image")
     public void add(@RequestBody ImageRequestDto imageRequestDto) {

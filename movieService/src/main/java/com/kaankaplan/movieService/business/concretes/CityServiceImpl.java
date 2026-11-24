@@ -11,7 +11,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 
@@ -21,7 +20,6 @@ public class CityServiceImpl implements CityService {
 
     private final CityDao cityDao;
     private final MovieService movieService;
-    private final WebClient.Builder webClientBuilder;
 
 
     @Override
@@ -38,21 +36,13 @@ public class CityServiceImpl implements CityService {
     @CacheEvict(value = "cities", allEntries = true)
     @Override
     public void add(CityRequestDto cityRequestDto) {
-        Boolean result = webClientBuilder.build().get()
-                .uri("http://USERSERVICE/api/user/isUserAdmin")
-                .header("Authorization", "Bearer " + cityRequestDto.getToken())
-                .retrieve()
-                .bodyToMono(Boolean.class)
-                .block();
-        if (result) {
-            Movie movie = movieService.getMovieById(cityRequestDto.getMovieId());
-            for (String cityName: cityRequestDto.getCityNameList()) {
-                City city = City.builder()
-                        .cityName(cityName)
-                        .movie(movie)
-                        .build();
-                cityDao.save(city);
-            }
+        Movie movie = movieService.getMovieById(cityRequestDto.getMovieId());
+        for (String cityName : cityRequestDto.getCityNameList()) {
+            City city = City.builder()
+                    .cityName(cityName)
+                    .movie(movie)
+                    .build();
+            cityDao.save(city);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.kaankaplan.movieService.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.kaankaplan.movieService.business.abstracts.DirectorService;
 import com.kaankaplan.movieService.entity.Director;
 import com.kaankaplan.movieService.entity.dto.DirectorRequestDto;
@@ -24,6 +25,7 @@ public class DirectorController {
     }
 
     @PostMapping("add")
+    @PreAuthorize("hasRole('ADMIN')")
     @CircuitBreaker(name="director", fallbackMethod = "fallback")
     @Retry(name="director")
     public Director add(@RequestBody DirectorRequestDto directorRequestDto) {

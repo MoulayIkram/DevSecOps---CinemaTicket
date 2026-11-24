@@ -13,5 +13,4 @@ public class ImageRequestDto {
 
     private int movieId;
     private String imageUrl;
-    private String token;
 }

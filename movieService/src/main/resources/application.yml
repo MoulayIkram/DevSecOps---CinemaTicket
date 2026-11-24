@@ -6,6 +6,12 @@ spring:
     import: optional:file:../.env[.properties],optional:file:./.env[.properties]
   application:
     name: movieService
+  # Resource server OAuth2 : validation des JWT emis par Keycloak (JWKS)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8181/realms/cinevision
   # PostgreSql Properties
   datasource:
     username: 'postgres'
@@ -79,3 +85,9 @@ resilience4j:
       inventory:
         max-attempts: 3
         wait-duration: 5s
+
+# Keycloak : jeton de service (Client Credentials) de movie-service
+keycloak:
+  token-uri: http://localhost:8181/realms/cinevision/protocol/openid-connect/token
+  client-id: movie-service
+  client-secret: ${MOVIE_SERVICE_CLIENT_SECRET}

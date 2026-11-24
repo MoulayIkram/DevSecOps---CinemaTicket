@@ -1,5 +1,6 @@
 package com.kaankaplan.movieService.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.kaankaplan.movieService.business.abstracts.CityService;
 import com.kaankaplan.movieService.entity.City;
 import com.kaankaplan.movieService.entity.dto.CityRequestDto;
@@ -28,6 +29,7 @@ public class CityController {
     }
 
     @PostMapping("add")
+    @PreAuthorize("hasRole('ADMIN')")
     @CircuitBreaker(name="city", fallbackMethod = "fallback")
     @Retry(name="city")
     public void add(@RequestBody CityRequestDto cityRequestDto) {
