@@ -1,26 +1,31 @@
 # CineVision : authentification et autorisation inter-services
 
+Projet Ingénierie des Systèmes Sécurisés, ENSIAS, A.U. 2026/2027.
 Binôme : Ikram Moulay et Wissal Kallah.
 
-L'application de départ est [CineVisionMicroserviceProject](https://github.com/VonHumbolt/CineVisionMicroserviceProject) de Kaan Kaplan.
-Notre travail porte sur sa sécurisation (Keycloak, OAuth 2.0 / OIDC, JWT, RBAC / ABAC).
+L'application de départ est [CineVisionMicroserviceProject](https://github.com/VonHumbolt/CineVisionMicroserviceProject) de Kaan Kaplan
+(microservices Spring Boot et frontend React de réservation de billets de cinéma).
+Notre travail consiste à **sécuriser les échanges entre utilisateurs et services, puis entre les services eux-mêmes**, selon le principe Zero Trust :
+chaque appel prouve son identité et ses droits, et chaque service revérifie lui-même ce qu'il reçoit.
 
-> **État actuel : version de référence, NON sécurisée.**
-> Elle sert à documenter le comportement avant sécurisation. Les failles qu'elle contient sont listées en section 7.
+Le rapport détaillé (état de l'art, comparatif mTLS / JWT / OAuth 2.0-OIDC / RBAC / ABAC / PBAC / ReBAC, justification, tests) est déposé sur Moodle.
 
 ---
 
-## 1. Prérequis
+## 1. Solution retenue
 
-| Outil | Version |
+| Besoin | Mécanisme |
 |---|---|
-| JDK | 17 |
-| IntelliJ IDEA | avec le plugin Lombok et l'annotation processing activé |
-| Docker Desktop | démarré avant de lancer les commandes |
-| Node.js | 16 ou 18 |
-| Git | récent |
+| Identité des utilisateurs | **Keycloak 24** (OAuth 2.0 / OpenID Connect), flux Authorization Code avec PKCE pour le frontend |
+| Format des jetons | **JWT signé en RS256** ; les services vérifient la signature avec la clé publique de Keycloak (JWKS), sans aucun secret partagé |
+| Droits des utilisateurs | **RBAC** : rôles `ADMIN` et `CUSTOMER`, lus dans le claim `realm_access.roles` |
+| Droits fins | **ABAC** : un commentaire n'est supprimable que par son auteur (claim `sub`) ou par un `ADMIN` |
+| Appels de service à service | **Client Credentials** : `movieService` obtient son propre jeton de service (rôle `SERVICE_MOVIE`) pour appeler `userService` |
+| Messages Kafka | le jeton de service est joint dans un header ; `emailService` le valide avant d'envoyer l'email |
+| Secrets | aucun secret dans le code : tout passe par un fichier `.env` ignoré par Git |
 
-## 2. Architecture et ports
+
+## 2. Architecture
 
 Le schéma ci-dessous présente l'architecture microservices de l'application, incluant l'authentification via Keycloak, le routage par l'API Gateway et la communication asynchrone avec Kafka.
 
@@ -28,133 +33,118 @@ Le schéma ci-dessous présente l'architecture microservices de l'application, i
 
 | Composant | Rôle | Port |
 |---|---|---|
-| eureka-server | annuaire des services | 8761 |
-| api-gateway | point d'entrée unique | 8080 |
-| userService | comptes et login (MongoDB) | aléatoire |
-| movieService | films, paiements, commentaires (PostgreSQL) | aléatoire |
+| Frontend React | interface, connexion via Keycloak (`keycloak-js`) | 3000 |
+| API Gateway | point d'entrée, valide le JWT et applique les règles par route | 8080 |
+| Keycloak | fournisseur d'identité, realm `cinevision` importé automatiquement | 8181 |
+| Eureka | annuaire des services | 8761 |
+| userService | profils utilisateurs (MongoDB) et endpoint interne | aléatoire |
+| movieService | films, commentaires, paiements (PostgreSQL) | aléatoire |
 | emailService | envoi de l'email du ticket (consomme Kafka) | aléatoire |
-| frontend React | interface | 3000 |
-| PostgreSQL | base de movieService | 5433 |
-| MongoDB | base de userService | 27018 |
-| Kafka | messages movieService vers emailService | 9092 |
-| Zipkin | traçage des requêtes | 9411 |
-| Redis | cache | 6379 |
+| PostgreSQL / MongoDB | bases de données | 5433 / 27018 |
+| Kafka | messages `movieService` vers `emailService` | 9092 |
+| Zipkin / Redis | traçage / cache | 9411 / 6379 |
 
-Les services métier prennent un port aléatoire (`port: 0`) et s'enregistrent dans Eureka.
-Pour trouver le port d'un service, regarder la ligne `Tomcat started on port(s)` de sa console.
 
-## 3. Lancement
+## 3. Prérequis
 
-### 3.1 Infrastructure Docker
+| Outil | Version |
+|---|---|
+| JDK | 17 |
+| IntelliJ IDEA | plugin Lombok et annotation processing activés |
+| Docker Desktop | démarré avant de lancer les commandes |
+| Node.js | 16 ou 18 |
+| Git | récent |
 
-À la racine du projet :
+## 4. Installation et lancement
+
+### 4.1 Configurer les secrets (obligatoire)
 
 ```powershell
-docker compose up -d postgres mongodb kafka zipkin redis
+Copy-Item .env.example .env
+```
+Remplir `.env` (ce fichier n'est jamais commité) :
+
+| Variable | Contenu |
+|---|---|
+| `EUREKA_USER`, `EUREKA_PASSWORD` | identifiants d'Eureka, à choisir (lettres et chiffres uniquement) |
+| `MOVIE_SERVICE_CLIENT_SECRET` | secret du client Keycloak `movie-service`, défini dans `keycloak/realm-cinevision.json` |
+| `SMTP_USERNAME`, `SMTP_PASSWORD` | compte Gmail et mot de passe d'application, sans espaces |
+
+
+### 4.2 Infrastructure Docker
+
+```powershell
+docker compose up -d postgres mongodb kafka zipkin redis keycloak
 docker ps
 ```
+Six conteneurs doivent être en état `Up`. Keycloak met environ une minute à démarrer et importe le realm `cinevision` automatiquement.
+Console d'administration : http://localhost:8181 (`admin` / `admin`, environnement de développement).
 
-Cinq conteneurs doivent être en état `Up`. Keycloak et mongo-express ne sont pas nécessaires à ce stade.
+### 4.3 Services Spring Boot (dans IntelliJ)
 
-### 3.2 Services Spring Boot (dans IntelliJ)
+1. File > Open, sélectionner le `pom.xml` **racine**, puis Open as Project ; SDK 17 ; Reload All Maven Projects.
+2. Démarrer dans cet ordre, en attendant `Started ...` à chaque fois :
+   `EurekaServerApplication`, `UserServiceApplication`, `MovieServiceApplication`, `EmailServiceApplication`, `ApiGatewayApplication`.
+3. Sur http://localhost:8761 (identifiants du `.env`), quatre services doivent apparaître : USERSERVICE, MOVIESERVICE, EMAILSERVICE, API-GATEWAY.
 
-1. Ouvrir le `pom.xml` **racine** avec File > Open, puis Open as Project.
-2. Project Structure : SDK 17. Compiler > Annotation Processors : cocher Enable annotation processing.
-3. Démarrer les applications **dans cet ordre**, en attendant `Started ...` à chaque fois :
-   1. `EurekaServerApplication` (puis ouvrir http://localhost:8761, identifiants `eureka` / `password`)
-   2. `UserServiceApplication`
-   3. `MovieServiceApplication`
-   4. `EmailServiceApplication`
-   5. `ApiGatewayApplication`
-4. Sur la page Eureka, quatre services doivent apparaître : USERSERVICE, MOVIESERVICE, EMAILSERVICE, API-GATEWAY.
+### 4.4 Données de test (première fois seulement)
 
-### 3.3 Données de test (première fois seulement)
-
-La base est vide au départ : sans ces scripts, la liste des films est vide et le bouton « Filmler » mène à `/movie/undefined`.
-
-Conditions :
-
-- `MovieServiceApplication` doit avoir démarré **au moins une fois**, car c'est Hibernate qui crée les tables.
-- Les scripts s'exécutent **une seule fois**, sinon ils créent des doublons.
-
+`MovieServiceApplication` doit avoir démarré au moins une fois (Hibernate crée les tables). Le script ne s'exécute **qu'une fois** :
 ```powershell
 Get-Content scripts\seed-postgres.sql | docker exec -i cinevision-postgres psql -U postgres -d cine_vision
-Get-Content scripts\seed-mongo.js | docker exec -i mongodb mongosh -u rootuser -p rootpass --authenticationDatabase admin user
 ```
+Puis redémarrer `MovieServiceApplication` (la liste vide a pu être mise en cache).
 
-Puis **redémarrer `MovieServiceApplication`** (la liste vide a pu être mise en cache).
-
-Le script Mongo crée les deux rôles (`CUSTOMER` et `ADMIN`). Sans eux, l'inscription crée un utilisateur sans rôle.
-
-### 3.4 Frontend
+### 4.5 Frontend
 
 ```powershell
 cd frontend
-npm install        # ajouter --legacy-peer-deps en cas d'erreur de dépendances
+npm install        
 npm start
 ```
+Ouvrir http://localhost:3000 : le bouton de connexion redirige vers Keycloak. Les films sont **plus bas dans la page**  ,  sous l'onglet «Now Showing».
 
-Ouvrir http://localhost:3000 et **descendre dans la page** : le film apparaît sous l'onglet « Vizyonda » (à l'affiche).
+### 4.6 Comptes de démonstration (realm de développement)
 
-Vocabulaire de l'interface (turc) :
-Filmler = films, Vizyonda = à l'affiche, Yakında = bientôt, Kayıt ol = s'inscrire, Giriş = connexion, Bilet Al = acheter un billet, Yorum Yap = commenter, Film Ekle = ajouter un film (admin).
+| Compte | Mot de passe | Rôles |
+|---|---|---|
+| `admin@cinevision.test` | `Admin1234` | `ADMIN`, `CUSTOMER` |
+| `customer@cinevision.test` | `Test1234` | `CUSTOMER` |
 
-## 4. Vérifier que tout fonctionne
+L'inscription libre est activée : un nouveau compte reçoit le rôle `CUSTOMER`.
 
-PowerShell, depuis n'importe quel dossier :
+## 5. Tests de sécurité
+
+Le script `scripts/test-securite.ps1` rejoue les cas du plan de test. Prérequis : Keycloak, les cinq services et le Gateway démarrés, `.env` rempli.
 
 ```powershell
-# Liste des films via le Gateway
-Invoke-RestMethod http://localhost:8080/api/movie/movies/displayingMovies
-
-# Inscription
-Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/user/users/add -ContentType "application/json" -Body '{"customerName":"Test User","email":"test@test.com","phone":"0600000000","password":"Test1234"}'
-
-# Connexion (renvoie le jeton JWT)
-$r = Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/user/auth/login -ContentType "application/json" -Body '{"email":"test@test.com","password":"Test1234"}'
-$r
+powershell -ExecutionPolicy Bypass -File scripts\test-securite.ps1
+powershell -ExecutionPolicy Bypass -File scripts\test-securite.ps1 -AvecExpiration   # ajoute le test du jeton expiré (6 minutes)
 ```
 
-L'envoi réel de l'email nécessite un mot de passe d'application Gmail dans `emailService/src/main/resources/application.yml`.
-Sans lui, le paiement fonctionne mais `emailService` affiche `535 Username and Password not accepted` : c'est attendu.
+| Groupe | Cas testés | Attendu |
+|---|---|---|
+| Gateway | lecture publique ; écriture sans jeton ; `CUSTOMER` sur une route `ADMIN` ; `ADMIN` ; jeton falsifié | 200 / 401 / 403 / 200 / 401 |
+| Appel direct aux services | `movieService` sans jeton ; `movieService` avec un `CUSTOMER` sur une route `ADMIN` ; `userService` sans jeton | 401 / 403 / 401 |
+| Service à service | profil créé depuis les claims ; endpoint interne sans jeton, avec un jeton `ADMIN`, avec le jeton de service | 200 / 401 / 403 / 200 |
+| ABAC | un `CUSTOMER` supprime le commentaire d'un autre ; un `ADMIN` le supprime | 403 / 200 |
+| Scénario nominal | paiement sans jeton ; paiement `CUSTOMER` (email envoyé via Kafka) | 401 / 200 |
 
-## 5. Problèmes fréquents
+## 6. Structure du dépôt
 
-| Symptôme | Cause et solution |
-|---|---|
-| `container name "/postgres" is already in use` | un autre projet Docker utilise ce nom : le conteneur de ce projet s'appelle `cinevision-postgres` |
-| `port is already allocated` | un autre programme utilise le port : changer le **premier** nombre de `"5432:5432"` dans `docker-compose.yml`, et le port dans l'`application.yml` du service concerné |
-| `AuthenticationFailed` (Mongo) ou `authentification par mot de passe échouée` (Postgres) | une base installée sur Windows répond sur le même port que le conteneur : l'arrêter ou changer le port du conteneur |
-| Kafka s'arrête avec `exec format error` | ancienne image `wurstmeister/kafka` incompatible avec un processeur ARM : le projet utilise maintenant `apache/kafka` |
-| IntelliJ : `Cannot parse file ... .iml` | fermer IntelliJ, supprimer le dossier `.idea`, puis rouvrir le `pom.xml` racine |
-| Liste de films vide | scripts de la section 3.3 non exécutés, ou `movieService` non redémarré |
+```
+api-gateway/            Gateway réactif, resource server OAuth2
+eureka-server/          annuaire des services
+userService/            profils (MongoDB), endpoint interne protégé
+movieService/           catalogue, commentaires, paiements, jeton de service
+emailService/           consumer Kafka qui valide le jeton de service
+frontend/               React, keycloak-js, intercepteur Axios
+keycloak/               realm-cinevision.json (clients, rôles, comptes de test)
+scripts/                données de test (seed-postgres.sql) et tests de sécurité (test-securite.ps1)
+captures/               preuves avant / après sécurisation
+docker-compose.yml      infrastructure (bases, Kafka, Keycloak, Zipkin, Redis)
+.env.example            modèle de configuration des secrets
+```
 
-## 6. Changements par rapport au projet d'origine
 
-- Kafka : image `apache/kafka:3.8.0` (mode KRaft). Zookeeper a été supprimé.
-- Conteneur Postgres renommé `cinevision-postgres`.
-- Ajout du dossier `scripts/` (données de test) et de ce README.
 
-## 7. Constats de sécurité (état de référence)
-
-Vérifiés avec les commandes de la section 4 :
-
-- Le Gateway est ouvert : `GET /api/movie/movies/displayingMovies` répond 200 sans jeton.
-- `POST /api/movie/payments/sendTicketDetail` est accepté sans jeton et déclenche l'envoi d'un email à l'adresse fournie dans le body.
-- Les services sont joignables directement sur leur port, sans passer par le Gateway.
-- Le consumer Kafka d'`emailService` traite tout message reçu, sans vérifier son origine.
-- Secrets en dur : identifiants Eureka, secret JWT HS256 (dans deux fichiers), mot de passe SMTP, mots de passe des bases.
-- Le jeton JWT est valable 2 semaines et circule dans le body JSON.
-
-## 8. Travail de sécurisation (en cours)
-
-Keycloak, validation des JWT au Gateway, `@PreAuthorize` sur les écritures, jeton de service (Client Credentials) entre `movieService` et `userService`, tests.
-Section à compléter au fil des phases.
-
-## 9. Configuration des secrets (obligatoire)
-
-1. `Copy-Item .env.example .env` (à la racine du projet)
-2. Remplir `.env` avec ses propres valeurs (commandes de génération dans `.env.example`).
-   Ce fichier n'est jamais commité.
-3. `SMTP_USERNAME` / `SMTP_PASSWORD` : compte Gmail et mot de passe d'application.
-   Sans eux, tout fonctionne sauf l'envoi réel de l'email.
